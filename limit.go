@@ -55,3 +55,9 @@ func (rl *RateLimiter) refillTokens() {
 func (rl *RateLimiter) Wait() {
 	<-rl.tokens
 }
+
+// can now take action or wait?
+// true if now wait i.e. Wait() call will end immidiatelly
+func (rl *RateLimiter) Can() bool {
+	return len(rl.tokens) > 0
+}

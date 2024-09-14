@@ -92,3 +92,32 @@ func TestRateLimiterEdgeCases(t *testing.T) {
 		t.Errorf("Expected at least 2 seconds to elapse for 2 actions, but got %v", elapsed)
 	}
 }
+
+func TestRateLimiterCan(t *testing.T) {
+	// Создаем RateLimiter с 1 действием за 1 секунду
+	rateLimiter := New(1, time.Second)
+
+	// Запускаем 2 горутины, каждая из которых выполняет действие
+	start := time.Now()
+	rateLimiter.Wait()
+	b := rateLimiter.Can()
+	if b {
+		t.Errorf("Expected can = false")
+	}
+	time.Sleep(time.Second * 2)
+
+	b = rateLimiter.Can()
+	if !b {
+		t.Errorf("Expected can = true")
+	}
+
+	// Ожидаем завершения всех горутин
+	time.Sleep(3 * time.Second)
+
+	elapsed := time.Since(start)
+
+	// Проверяем, что время выполнения соответствует ожиданиям
+	if elapsed < 2*time.Second {
+		t.Errorf("Expected at least 2 seconds to elapse for 2 actions, but got %v", elapsed)
+	}
+}

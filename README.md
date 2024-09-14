@@ -37,7 +37,8 @@ func main() {
     for i := 0; i < 15; i++ {
         go func(i int) {
             rl.Wait() // Wait until it's allowed to perform the action
-            fmt.Println("Action", i)
+            b := rl.Can()
+            fmt.Printf("Action %d, can: %t", i, b)
         }(i)
     }
 
@@ -57,6 +58,10 @@ Creates a new RateLimiter instance that allows actionsPerDuration actions over t
 ## Wait()
 
 Blocks until an action can be performed according to the rate limit. Call this method before performing an action to ensure compliance with the rate limit.
+
+## Can()
+
+Informs will Wait() be locking right now or not. Call this method to test this case.
 
 ## Contributing
 
