@@ -1,6 +1,7 @@
 package minrate
 
 import (
+	"slices"
 	"time"
 )
 
@@ -8,6 +9,7 @@ import (
 type RateLimiter struct {
 	actionsPerDuration int
 	duration           time.Duration
+	lastFill           time.Time
 	tokens             chan struct{}
 }
 
@@ -19,36 +21,11 @@ func New(actionsPerDuration int, duration time.Duration) *RateLimiter {
 		tokens:             make(chan struct{}, actionsPerDuration),
 	}
 
-	go rl.refillTokens()
+	queue.Lock()
+	queue.limiters = append(queue.limiters, rl)
+	queue.Unlock()
 
 	return rl
-}
-
-// refillTokens наполняет канал токенами с учетом установленного ограничения
-func (rl *RateLimiter) refillTokens() {
-	ticker := time.NewTicker(rl.duration)
-	defer ticker.Stop()
-
-	fill := func() {
-		// Наполняем канал токенами
-		for i := 0; i < rl.actionsPerDuration; i++ {
-			select {
-			case rl.tokens <- struct{}{}:
-			default:
-				// Канал уже заполнен
-			}
-		}
-	}
-
-	//init
-	fill()
-
-	for {
-		select {
-		case <-ticker.C:
-			fill()
-		}
-	}
 }
 
 // Wait ожидает, пока действие станет возможным согласно ограничениям
@@ -60,4 +37,13 @@ func (rl *RateLimiter) Wait() {
 // true if now wait i.e. Wait() call will end immidiatelly
 func (rl *RateLimiter) Can() bool {
 	return len(rl.tokens) > 0
+}
+
+// remove limiter from checking queue
+func (rl *RateLimiter) Close() {
+	queue.Lock()
+	defer queue.Unlock()
+	queue.limiters = slices.DeleteFunc(queue.limiters, func(r *RateLimiter) bool {
+		return r == rl
+	})
 }
