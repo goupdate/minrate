@@ -31,8 +31,7 @@ func refillTokens() {
 		}
 	}
 
-	for range ticker.C {
-		tn := time.Now()
+	for tn := range ticker.C {
 		queue.Lock()
 		for _, q := range queue.limiters {
 			if tn.Sub(q.lastFill) > q.duration {

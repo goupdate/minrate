@@ -19,6 +19,12 @@ func New(actionsPerDuration int, duration time.Duration) *RateLimiter {
 		actionsPerDuration: actionsPerDuration,
 		duration:           duration,
 		tokens:             make(chan struct{}, actionsPerDuration),
+		lastFill:           time.Now(),
+	}
+
+	//fill all at start
+	for i := 0; i < rl.actionsPerDuration; i++ {
+		rl.tokens <- struct{}{}
 	}
 
 	queue.Lock()

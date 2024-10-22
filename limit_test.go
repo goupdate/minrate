@@ -1,6 +1,7 @@
 package minrate
 
 import (
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -119,5 +120,15 @@ func TestRateLimiterCan(t *testing.T) {
 	// Проверяем, что время выполнения соответствует ожиданиям
 	if elapsed < 2*time.Second {
 		t.Errorf("Expected at least 2 seconds to elapse for 2 actions, but got %v", elapsed)
+	}
+}
+
+func Test100000RL(t *testing.T) {
+	for i := 0; i < 100000; i++ {
+		r := New(2, time.Minute)
+		r.Wait()
+	}
+	if runtime.NumGoroutine() > 10 {
+		t.Error("expected less 10 goroutines")
 	}
 }
