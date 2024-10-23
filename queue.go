@@ -27,6 +27,7 @@ func refillTokens() {
 			case t <- struct{}{}:
 			default:
 				// Канал уже заполнен
+				break
 			}
 		}
 	}
