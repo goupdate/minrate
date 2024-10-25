@@ -13,7 +13,8 @@ type RateLimiter struct {
 	tokens             chan struct{}
 }
 
-// New создает новый RateLimiter с заданным количеством действий и продолжительностью
+// New creates new RateLimiter with given actions per duration
+// minimum duration is 50millis = time.Millisecond * 50
 func New(actionsPerDuration int, duration time.Duration) *RateLimiter {
 	rl := &RateLimiter{
 		actionsPerDuration: actionsPerDuration,
@@ -52,4 +53,16 @@ func (rl *RateLimiter) Close() {
 	queue.limiters = slices.DeleteFunc(queue.limiters, func(r *RateLimiter) bool {
 		return r == rl
 	})
+}
+
+// = false if !Can()
+// = true if can and already waited
+func (rl *RateLimiter) CanOrWait() bool {
+	ok := true
+	select {
+	case <-rl.tokens:
+	default:
+		ok = false
+	}
+	return ok
 }

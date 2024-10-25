@@ -132,3 +132,32 @@ func Test100000RL(t *testing.T) {
 		t.Error("expected less 10 goroutines")
 	}
 }
+
+func TestCanOrWait(t *testing.T) {
+	rateLimiter := New(1, time.Millisecond*200)
+
+	ok := rateLimiter.CanOrWait()
+	if !ok {
+		t.Error("must be true")
+		return
+	}
+
+	ok = rateLimiter.CanOrWait()
+	if ok {
+		t.Error("must be false")
+		return
+	}
+
+	ok = rateLimiter.CanOrWait()
+	if ok {
+		t.Error("must be false")
+		return
+	}
+
+	time.Sleep(time.Millisecond * 300)
+	ok = rateLimiter.CanOrWait()
+	if !ok {
+		t.Error("must be true")
+		return
+	}
+}
